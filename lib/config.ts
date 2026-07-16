@@ -11,11 +11,18 @@ import type { LanguageModel } from "ai";
 
 // --- Models -----------------------------------------------------------------
 /**
- * PRIMARY: Google AI Studio's `gemini-2.5-flash`, on the free tier (~10 RPM at
- * time of writing), reached through the native `@ai-sdk/google` provider. This
- * is what makes the voice booking agent and the multi-turn eval cost $0.
+ * PRIMARY: Google AI Studio's `gemini-flash-latest` alias, on the free tier,
+ * reached through the native `@ai-sdk/google` provider. This is what makes the
+ * voice booking agent and the multi-turn eval cost $0.
+ *
+ * The alias (not a pinned id) is deliberate: Google retires pinned free-tier
+ * ids for new keys as generations roll over (`gemini-2.5-flash` now returns
+ * "no longer available to new users"), while `-latest` keeps tracking the
+ * current flash generation. Tradeoff: the serving model can change under us,
+ * which is why every published metric is labeled with the model that produced
+ * it at measurement time.
  */
-export const GEMINI_MODEL = "gemini-2.5-flash";
+export const GEMINI_MODEL = "gemini-flash-latest";
 
 /**
  * FALLBACK: Groq's `llama-3.3-70b-versatile`, served over Groq's OpenAI-compatible
@@ -37,7 +44,7 @@ export type AgentProvider = "google" | "groq";
 /**
  * Resolve the agent language model plus the concrete model id and provider that
  * were selected. Precedence (first present key wins):
- *   1. GEMINI_API_KEY → native @ai-sdk/google `gemini-2.5-flash` (primary).
+ *   1. GEMINI_API_KEY → native @ai-sdk/google `gemini-flash-latest` (primary).
  *   2. GROQ_API_KEY   → `llama-3.3-70b-versatile` via Groq's OpenAI-compat endpoint.
  *
  * Call sites gate on `agentConfigured()` first; when neither key is present this
@@ -83,7 +90,7 @@ export const WINDOW_MS = 60_000; // 1 minute
 export const PER_IP_DAILY_CAP = 25;
 /**
  * Global daily MODEL-CALL budget. The real scarce resource is the shared
- * gemini-2.5-flash free-tier quota (~250 requests/DAY at time of writing), and a
+ * gemini-flash-latest free-tier quota (~250 requests/DAY at time of writing), and a
  * SINGLE agent request can make up to MAX_STEPS (6) model calls. So we meter
  * model calls — not agent requests — against this budget, kept comfortably under
  * 250 for headroom. See lib/guards.ts (recordModelCall / modelBudgetAvailable).

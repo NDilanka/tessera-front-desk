@@ -163,7 +163,7 @@ Turso — the difference is persistence, not whether it functions.
 
 ## 9. Spend guard: meter model calls, not agent requests
 
-The scarce resource is the shared `gemini-2.5-flash` free-tier quota (~250
+The scarce resource is the shared `gemini-flash-latest` free-tier quota (~250
 requests/**day**), and a single agent request can make up to `MAX_STEPS` (6)
 model calls. Capping *agent requests* per day (the old `DAILY_CAP=200`) was the
 wrong unit — one busy visitor could issue 200 requests × 6 calls and black out

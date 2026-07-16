@@ -106,7 +106,7 @@ rate** (gate ≥ 80%, i.e. 12/15) plus tool-sequence accuracy.
 
 ## Cost
 
-$0 at rest and $0 to demo: `gemini-2.5-flash` on Google AI Studio’s free tier
+$0 at rest and $0 to demo: `gemini-flash-latest` on Google AI Studio’s free tier
 (~10 requests/min, ~250/day), the local SQLite file, and the browser’s own
 STT/TTS. The in-memory abuse guards and free-tier quotas are the backstops
 against a runaway bill. Because one booking turn can make several model calls,
