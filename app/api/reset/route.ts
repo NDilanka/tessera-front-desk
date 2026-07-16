@@ -1,0 +1,32 @@
+// Demo-reset endpoint — reseeds the calendar to a fresh rolling set of open
+// slots and wipes every booking, so the public demo returns to a known-good
+// state. Shares lib/seed.ts with `npm run seed`.
+//
+// Rate-limited by the same per-IP / per-day guards as the agent route so it
+// can't be hammered to churn the database.
+import { runSeed } from "@/lib/seed";
+import { runGuards } from "@/lib/guards";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+export async function POST(req: Request) {
+  const verdict = runGuards(req);
+  if (!verdict.ok) {
+    return Response.json(
+      { error: verdict.error, message: verdict.message },
+      { status: verdict.status },
+    );
+  }
+
+  try {
+    const counts = await runSeed();
+    return Response.json({ ok: true, reseeded: counts });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Unknown error";
+    return Response.json(
+      { ok: false, error: "seed_failed", message },
+      { status: 500 },
+    );
+  }
+}
