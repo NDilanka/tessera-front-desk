@@ -5,7 +5,7 @@
 // Rate-limited by the same per-IP / per-day guards as the agent route so it
 // can't be hammered to churn the database.
 import { runSeed } from "@/lib/seed";
-import { runGuards } from "@/lib/guards";
+import { runGuards, resetAuthorized } from "@/lib/guards";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -16,6 +16,15 @@ export async function POST(req: Request) {
     return Response.json(
       { error: verdict.error, message: verdict.message },
       { status: verdict.status },
+    );
+  }
+
+  // When RESET_SECRET is configured (production), a stranger can't wipe the
+  // shared calendar: require a matching ?secret= / x-reset-secret. Unset locally.
+  if (!resetAuthorized(req)) {
+    return Response.json(
+      { error: "forbidden", message: "This demo reset is protected." },
+      { status: 403 },
     );
   }
 

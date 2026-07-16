@@ -17,6 +17,15 @@ import type { ChatMessage, BookingConfirmation } from "@/lib/types";
 /** Client-side hard cap on turns, matching the server's MAX_TURNS. */
 const MAX_TURNS = 20;
 
+/**
+ * Whether to show the public "Reset demo" link. Off by default so a stranger
+ * can't wipe the shared calendar in production (the /api/reset route is also
+ * secret-gated server-side via RESET_SECRET). Set NEXT_PUBLIC_ALLOW_PUBLIC_RESET=1
+ * locally to show it. Inlined at build time.
+ */
+const ALLOW_PUBLIC_RESET =
+  process.env.NEXT_PUBLIC_ALLOW_PUBLIC_RESET === "1";
+
 const STATUS: Record<AgentState, string> = {
   idle: "Tap the orb and speak.",
   listening: "Listening… tap again when you’re done.",
@@ -117,6 +126,10 @@ export default function Home() {
 
   // --- Listening ------------------------------------------------------------
   const startListening = useCallback(() => {
+    // Guard against a second recognizer: a quick double-tap (or a barge-in tap
+    // landing before the prior recognizer has torn down) must not spawn a rival
+    // recognizer that races the first. One active recognizer at a time.
+    if (recognizerRef.current) return;
     setInterim("");
     gotFinalRef.current = false;
     const rec = createRecognizer({
@@ -126,11 +139,14 @@ export default function Home() {
         submitUtterance(t);
       },
       onEnd: () => {
+        // Recognizer is done — release the slot so the next tap can start one.
+        recognizerRef.current = null;
         // Ended with no final result (silence / abort) → back to idle.
         setInterim("");
         setState((s) => (s === "listening" && !gotFinalRef.current ? "idle" : s));
       },
       onError: (err) => {
+        recognizerRef.current = null;
         if (err !== "no-speech" && err !== "aborted") {
           setNotice(`Microphone error: ${err}. You can type instead.`);
         }
@@ -208,9 +224,11 @@ export default function Home() {
             <small>Voice booking · demo calls</small>
           </span>
         </div>
-        <button className="reset-link" onClick={onReset}>
-          Reset demo
-        </button>
+        {ALLOW_PUBLIC_RESET ? (
+          <button className="reset-link" onClick={onReset}>
+            Reset demo
+          </button>
+        ) : null}
       </header>
 
       <section className="stage">

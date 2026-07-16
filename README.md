@@ -107,9 +107,28 @@ rate** (gate ≥ 80%, i.e. 12/15) plus tool-sequence accuracy.
 ## Cost
 
 $0 at rest and $0 to demo: `gemini-2.5-flash` on Google AI Studio’s free tier
-(~10 requests/min), the local SQLite file, and the browser’s own STT/TTS. The
-in-memory abuse guards (6 req/IP/min, 200/day) and free-tier quotas are the
-backstops against a runaway bill.
+(~10 requests/min, ~250/day), the local SQLite file, and the browser’s own
+STT/TTS. The in-memory abuse guards and free-tier quotas are the backstops
+against a runaway bill. Because one booking turn can make several model calls,
+the global budget is metered at the **model-call** level, not per request:
+
+- **6 requests / IP / minute** (burst) and **25 requests / IP / day** (one
+  visitor can’t monopolise the demo).
+- **200 model calls / day** globally, under the ~250/day free-tier ceiling. When
+  it’s spent, the agent politely says the demo is resting until tomorrow.
+
+These counters are per-instance (in-process) — see [DECISIONS.md](./DECISIONS.md)
+#9 — so on serverless they’re best-effort; the provider quota is the hard limit.
+
+## Deploying (persistence)
+
+The app runs on any Vercel deploy with no database configured — it falls back to
+an ephemeral `/tmp` SQLite file that is **auto-seeded per instance**. That’s fine
+to click through a demo, but each serverless instance has its own calendar, so
+**bookings may not survive between requests**. For a persistent, shared calendar,
+set `TURSO_DATABASE_URL` + `TURSO_AUTH_TOKEN` (free hosted Turso) — this is the
+**recommended** production setup. Set `RESET_SECRET` too so only you can reseed
+the calendar via `/api/reset`. See [DECISIONS.md](./DECISIONS.md) #8.
 
 ## Portability to real telephony
 

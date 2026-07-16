@@ -126,12 +126,23 @@ export function createRecognizer(cb: RecognizerCallbacks): Recognizer | null {
 }
 
 // --- Text-to-speech ---------------------------------------------------------
+// Generation token for TTS. Every speak() claims the next id; an utterance's
+// onend/onerror only runs its onEnd callback while its id is still current. This
+// is the barge-in fix: cancelSpeech() bumps the generation, so the just-cancelled
+// utterance's async `onend` can no longer clobber a state the caller has since
+// moved on to (e.g. 'listening' after a tap-to-interrupt). Purely synchronous —
+// safe on the server (functions are only called client-side).
+let speechGeneration = 0;
+
 /**
- * Speak `text` aloud. `onEnd` fires when speech finishes OR is cancelled, so the
- * state machine can return to idle either way. Cancels anything already speaking
- * first so replies never overlap.
+ * Speak `text` aloud. `onEnd` fires when speech finishes — but NOT if this
+ * utterance was superseded by a later speak() or a cancelSpeech() (see the
+ * generation token above). Cancels anything already speaking first so replies
+ * never overlap; because the generation is bumped before that cancel, the prior
+ * utterance's stale onend is ignored.
  */
 export function speak(text: string, onEnd: () => void): void {
+  const myGen = ++speechGeneration; // claim this generation before anything else
   if (!speechSynthesisSupported() || !text.trim()) {
     onEnd();
     return;
@@ -141,12 +152,20 @@ export function speak(text: string, onEnd: () => void): void {
   utter.lang = "en-US";
   utter.rate = 1.02;
   utter.pitch = 1;
-  utter.onend = () => onEnd();
-  utter.onerror = () => onEnd();
+  const finish = () => {
+    if (myGen === speechGeneration) onEnd(); // ignore if superseded
+  };
+  utter.onend = finish;
+  utter.onerror = finish;
   window.speechSynthesis.speak(utter);
 }
 
-/** Stop any in-progress speech immediately (used for tap-to-interrupt). */
+/**
+ * Stop any in-progress speech immediately (tap-to-interrupt). Bumps the speech
+ * generation so the cancelled utterance's onend can't fire the stale onEnd that
+ * would otherwise force the state machine back to 'idle'.
+ */
 export function cancelSpeech(): void {
+  speechGeneration++;
   if (speechSynthesisSupported()) window.speechSynthesis.cancel();
 }

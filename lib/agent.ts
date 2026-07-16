@@ -21,6 +21,12 @@ export interface RunAgentOptions {
   model?: LanguageModel;
   /** Override "today" injected into the system prompt (test determinism). */
   today?: string;
+  /**
+   * Invoked once per model call (each agent step) as it completes, so callers
+   * can meter the shared free-tier quota at the MODEL-CALL level — a single turn
+   * makes up to MAX_STEPS calls. The route passes guards.recordModelCall here.
+   */
+  onModelCall?: () => void;
 }
 
 export interface ToolCallRecord {
@@ -158,6 +164,8 @@ export async function runAgent(
     messages: messages.map((m) => ({ role: m.role, content: m.content })),
     tools,
     stopWhen: stepCountIs(MAX_STEPS),
+    // Fires as each step (one LLM call) ends — meter model calls, not requests.
+    onStepEnd: opts.onModelCall ? () => opts.onModelCall!() : undefined,
   });
 
   return { text: result.text, booking, toolCalls: collectToolCalls(result.steps) };

@@ -81,10 +81,12 @@ transcript each turn. This is the simplest thing that scales on serverless
 “conversation” is just a growing array replayed through the same function.
 
 Caps guard the obvious abuse: a **20-turn** ceiling (client and server), per-turn
-and total character limits, and per-IP / per-day rate limits checked *before* any
-model call so a flood can’t burn the free-tier quota. A `>50` active-bookings cap
-makes the agent apologize that the demo calendar is full rather than growing
-unbounded.
+and total character limits, and per-IP rate limits checked *before* any model
+call so a flood can’t burn the free-tier quota (see #9 for how the global budget
+is metered). A `>30` active-bookings cap makes the agent apologize that the demo
+calendar is full rather than growing unbounded — deliberately set below the
+seeded free-slot count (~36–48) so the “full” path is reachable and smoke-tested,
+not dead code.
 
 ## 6. Booking atomicity
 
@@ -135,5 +137,58 @@ tool-sequence accuracy.
 The **smoke test** (`npm run smoke`) is the deterministic counterpart: it mocks
 the LLM entirely (no network, no key) and asserts the tool/DB mechanics —
 happy-path booking, unknown-slot rejection, concurrent-booking atomicity, guard
-short-circuit, and the turn cap — so CI has a hard, always-runnable gate even
-when no key is available.
+short-circuit, the turn cap, model-call metering + budget trip, IP-spoof
+resistance, the reachable `calendar_full` path, and reset authorization — so CI
+has a hard, always-runnable gate even when no key is available.
+
+## 8. Database: Turso in prod, ephemeral `/tmp` fallback
+
+`lib/db.ts` resolves the libSQL URL by precedence: the internal eval/smoke
+override → `TURSO_DATABASE_URL` → an on-Vercel fallback → `file:local.db` locally.
+
+- **Why the Vercel fallback.** The zero-config default (`file:local.db`) points at
+  the read-only app bundle on Vercel, so *every* booking would 500. When no Turso
+  URL is set on Vercel we fall back to `file:/tmp/front-desk.db` — `/tmp` is the
+  one writable path — and **auto-seed on first access** (`ensureSeeded`) so a
+  fresh instance has a calendar. This is honestly a **per-instance, ephemeral**
+  calendar: instances come and go and each has its own file, so bookings may not
+  survive between requests. It’s logged loudly to the console.
+- **Turso is the recommendation.** Setting `TURSO_DATABASE_URL` + `TURSO_AUTH_TOKEN`
+  gives a single persistent, shared calendar across all instances — the right
+  choice for anything beyond a throwaway demo. `ensureSeeded` is then a cheap
+  no-op (it only seeds a missing/empty calendar; it never drops a populated one).
+
+The upshot: `/api/agent` and `/api/reset` work on *any* deploy, with or without
+Turso — the difference is persistence, not whether it functions.
+
+## 9. Spend guard: meter model calls, not agent requests
+
+The scarce resource is the shared `gemini-2.5-flash` free-tier quota (~250
+requests/**day**), and a single agent request can make up to `MAX_STEPS` (6)
+model calls. Capping *agent requests* per day (the old `DAILY_CAP=200`) was the
+wrong unit — one busy visitor could issue 200 requests × 6 calls and black out
+the whole demo. So:
+
+- The global daily budget is **`DAILY_MODEL_CALLS=200`**, metered per *model call*
+  via `runAgent`’s `onStepEnd` callback (`recordModelCall`), kept under 250 for
+  headroom. A request already in flight can push the tally a few calls past the
+  budget — that’s what the headroom is for.
+- Per-IP limits are **6/min** (burst) and **25/day** (one visitor can’t
+  monopolise the demo).
+- When the budget is spent the route replies with a friendly, spoken
+  “demo is resting until tomorrow” turn — **not** an error.
+
+Like all the guards, these counters are **per-instance** module state (a `Map` /
+tally in one process’s memory), so on serverless they are best-effort, not a
+global guarantee; the provider-side quota is the hard backstop. Acceptable for a
+demo, called out here so it isn’t mistaken for a distributed rate limiter.
+
+## 10. Forged transcript turns are harmless by construction
+
+The server is stateless and trusts the client-supplied transcript (#5), so a
+crafted request *can* include invented “assistant” turns. That’s intentional and
+its impact is **nil**: bookings and confirmation codes are enforced by the
+database, not the transcript (#2, #6). A forged assistant turn can make the model
+*say* something, but it cannot conjure a real slot claim or a valid `TFD-XXXX`
+code — those only exist if `bookSlot` actually wrote a row. The transcript is a
+convenience for the model’s context, never a source of truth.

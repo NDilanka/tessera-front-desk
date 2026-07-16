@@ -76,11 +76,19 @@ export function overTurnCap(messages: { role: string }[]): boolean {
 }
 
 // --- Abuse guards (see lib/guards.ts) ---------------------------------------
-/** Per-IP sliding window: at most this many requests per WINDOW_MS. */
+/** Per-IP sliding window: at most this many agent requests per WINDOW_MS. */
 export const PER_IP_LIMIT = 6;
 export const WINDOW_MS = 60_000; // 1 minute
-/** Global kill-switch: at most this many served requests per UTC day. */
-export const DAILY_CAP = 200;
+/** Per-IP daily cap: at most this many agent requests per IP per UTC day. */
+export const PER_IP_DAILY_CAP = 25;
+/**
+ * Global daily MODEL-CALL budget. The real scarce resource is the shared
+ * gemini-2.5-flash free-tier quota (~250 requests/DAY at time of writing), and a
+ * SINGLE agent request can make up to MAX_STEPS (6) model calls. So we meter
+ * model calls — not agent requests — against this budget, kept comfortably under
+ * 250 for headroom. See lib/guards.ts (recordModelCall / modelBudgetAvailable).
+ */
+export const DAILY_MODEL_CALLS = 200;
 
 // --- System prompt ----------------------------------------------------------
 const WEEKDAY = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];

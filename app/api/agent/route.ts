@@ -6,11 +6,19 @@
 // when a booking succeeded this turn) populates the confirmation card.
 import { runAgent } from "@/lib/agent";
 import { agentConfigured, overTurnCap } from "@/lib/config";
-import { runGuards } from "@/lib/guards";
+import {
+  runGuards,
+  modelBudgetAvailable,
+  recordModelCall,
+  DEMO_RESTING_MESSAGE,
+} from "@/lib/guards";
+import { ensureSeeded } from "@/lib/db";
 import type { ChatMessage } from "@/lib/types";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+// A booking turn can make several model calls; give it headroom on Vercel.
+export const maxDuration = 30;
 
 /** Reject oversized conversations before they reach the model. */
 const MAX_MESSAGES = 60; // ≥ MAX_TURNS user turns + their assistant replies
@@ -97,8 +105,19 @@ export async function POST(req: Request) {
     );
   }
 
+  // Global daily model-call budget. When it's spent, reply with a friendly
+  // "resting" notice (spoken like any other turn) rather than an error, so the
+  // shared free-tier quota can't be blacked out for the rest of the day.
+  if (!modelBudgetAvailable()) {
+    return Response.json({ text: DEMO_RESTING_MESSAGE, booking: null });
+  }
+
   try {
-    const { text, booking } = await runAgent(messages);
+    // Ephemeral serverless DBs start empty — seed on first access (no-op on Turso).
+    await ensureSeeded();
+    const { text, booking } = await runAgent(messages, {
+      onModelCall: recordModelCall,
+    });
     return Response.json({ text, booking: booking ?? null });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";

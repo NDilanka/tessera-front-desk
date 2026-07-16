@@ -10,8 +10,13 @@ function rows<T>(r: { rows: Row[] }): T[] {
   return r.rows as unknown as T[];
 }
 
-/** Hard cap on active demo bookings before the calendar reports itself full. */
-export const MAX_ACTIVE_BOOKINGS = 50;
+/**
+ * Hard cap on active demo bookings before the calendar reports itself full. Set
+ * BELOW the seeded free-slot count (~36–48 depending on the run day) so the
+ * `calendar_full` branch is actually reachable in a demo — and asserted by the
+ * smoke test — rather than being dead code behind an unreachable ceiling.
+ */
+export const MAX_ACTIVE_BOOKINGS = 30;
 
 /** Default number of upcoming free slots returned when no date is given. */
 const DEFAULT_SLOT_LIMIT = 6;
