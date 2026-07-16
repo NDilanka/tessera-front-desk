@@ -1,0 +1,360 @@
+/* Tessera Front Desk — all styling. Plain CSS, no Tailwind, no UI libraries.
+   Designed to read cleanly on a screen recording: dark, calm, one focal orb. */
+
+:root {
+  --bg: #0b0f1a;
+  --bg-2: #0f1524;
+  --surface: #141b2d;
+  --surface-2: #1a2237;
+  --border: #263149;
+  --text: #eef2fb;
+  --muted: #9aa7c2;
+  --muted-2: #6b7794;
+
+  --idle: #4f6bed;
+  --listening: #22c55e;
+  --thinking: #f59e0b;
+  --speaking: #a855f7;
+  --danger: #f0526a;
+
+  --radius: 16px;
+  --radius-sm: 10px;
+  --shadow: 0 24px 60px -24px rgba(0, 0, 0, 0.7);
+}
+
+* {
+  box-sizing: border-box;
+}
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+body {
+  background: radial-gradient(1200px 700px at 50% -10%, #16213b 0%, var(--bg) 60%);
+  color: var(--text);
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  line-height: 1.5;
+  min-height: 100vh;
+}
+
+.shell {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 32px 20px 56px;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* --- Header ---------------------------------------------------------------- */
+.masthead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+}
+.brand .dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: linear-gradient(140deg, var(--idle), var(--speaking));
+  box-shadow: 0 0 12px var(--idle);
+}
+.brand small {
+  display: block;
+  font-weight: 400;
+  color: var(--muted-2);
+  font-size: 12px;
+  letter-spacing: 0;
+}
+.reset-link {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.reset-link:hover {
+  color: var(--text);
+  border-color: var(--muted-2);
+}
+
+/* --- Stage / orb ----------------------------------------------------------- */
+.stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  padding: 28px 0 22px;
+}
+.orb-wrap {
+  position: relative;
+  width: 172px;
+  height: 172px;
+  display: grid;
+  place-items: center;
+}
+.orb {
+  width: 132px;
+  height: 132px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  position: relative;
+  color: var(--text);
+  background: radial-gradient(circle at 35% 30%, #2a3350 0%, var(--surface-2) 70%);
+  transition: transform 0.18s ease, box-shadow 0.3s ease;
+  display: grid;
+  place-items: center;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+.orb:active {
+  transform: scale(0.97);
+}
+.orb:disabled {
+  cursor: default;
+}
+.orb .glyph {
+  font-size: 34px;
+  line-height: 1;
+}
+/* State rings via a pulsing pseudo-element. */
+.orb-wrap::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: var(--state-color, var(--idle));
+  opacity: 0.18;
+  filter: blur(6px);
+  transition: background 0.3s ease;
+}
+.orb {
+  box-shadow: 0 0 0 2px var(--state-color, var(--idle)) inset,
+    0 0 40px -6px var(--state-color, var(--idle));
+}
+.state-idle {
+  --state-color: var(--idle);
+}
+.state-listening {
+  --state-color: var(--listening);
+}
+.state-thinking {
+  --state-color: var(--thinking);
+}
+.state-speaking {
+  --state-color: var(--speaking);
+}
+
+.orb-wrap.pulse::after {
+  content: "";
+  position: absolute;
+  inset: 12px;
+  border-radius: 50%;
+  border: 2px solid var(--state-color, var(--idle));
+  animation: ring 1.4s ease-out infinite;
+}
+@keyframes ring {
+  0% {
+    transform: scale(0.9);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(1.35);
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .orb-wrap.pulse::after {
+    animation: none;
+  }
+}
+
+.status-line {
+  min-height: 22px;
+  color: var(--muted);
+  font-size: 14px;
+  text-align: center;
+}
+.status-line b {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.hint {
+  color: var(--muted-2);
+  font-size: 12.5px;
+  text-align: center;
+}
+
+/* --- Controls -------------------------------------------------------------- */
+.controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.toggle {
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 12.5px;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.toggle:hover {
+  color: var(--text);
+}
+
+.text-entry {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+  max-width: 440px;
+  margin: 0 auto;
+}
+.text-entry input {
+  flex: 1;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  padding: 11px 14px;
+  font-size: 14px;
+  outline: none;
+}
+.text-entry input:focus {
+  border-color: var(--idle);
+}
+.text-entry button {
+  background: var(--idle);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 0 18px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+}
+.text-entry button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* --- Transcript ------------------------------------------------------------ */
+.transcript {
+  flex: 1;
+  margin-top: 22px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 16px;
+  overflow-y: auto;
+  max-height: 42vh;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.transcript .empty {
+  color: var(--muted-2);
+  font-size: 13.5px;
+  text-align: center;
+  margin: auto;
+}
+.bubble {
+  max-width: 82%;
+  padding: 9px 13px;
+  border-radius: 13px;
+  font-size: 14px;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+.bubble.user {
+  align-self: flex-end;
+  background: var(--idle);
+  color: #fff;
+  border-bottom-right-radius: 4px;
+}
+.bubble.assistant {
+  align-self: flex-start;
+  background: var(--surface-2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-bottom-left-radius: 4px;
+}
+.bubble.interim {
+  align-self: flex-end;
+  background: transparent;
+  border: 1px dashed var(--muted-2);
+  color: var(--muted);
+  font-style: italic;
+}
+
+/* --- Confirmation card ----------------------------------------------------- */
+.card {
+  margin-top: 16px;
+  background: linear-gradient(150deg, var(--surface-2), var(--surface));
+  border: 1px solid var(--listening);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  box-shadow: 0 0 40px -14px var(--listening);
+}
+.card h3 {
+  margin: 0 0 12px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--listening);
+  letter-spacing: 0.3px;
+}
+.card dl {
+  margin: 0;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 8px 18px;
+}
+.card dt {
+  color: var(--muted);
+  font-size: 13px;
+}
+.card dd {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: right;
+}
+.card .code {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  letter-spacing: 1px;
+  color: var(--listening);
+}
+
+.notice {
+  margin-top: 14px;
+  border: 1px solid var(--thinking);
+  background: rgba(245, 158, 11, 0.08);
+  color: var(--text);
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  font-size: 13.5px;
+}
