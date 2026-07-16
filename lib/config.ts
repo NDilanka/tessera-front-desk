@@ -11,18 +11,19 @@ import type { LanguageModel } from "ai";
 
 // --- Models -----------------------------------------------------------------
 /**
- * PRIMARY: Google AI Studio's `gemini-flash-latest` alias, on the free tier,
- * reached through the native `@ai-sdk/google` provider. This is what makes the
- * voice booking agent and the multi-turn eval cost $0.
+ * PRIMARY: Google AI Studio's `gemini-flash-lite-latest` alias, on the free
+ * tier, reached through the native `@ai-sdk/google` provider. This is what
+ * makes the voice booking agent and the multi-turn eval cost $0.
  *
- * The alias (not a pinned id) is deliberate: Google retires pinned free-tier
- * ids for new keys as generations roll over (`gemini-2.5-flash` now returns
- * "no longer available to new users"), while `-latest` keeps tracking the
- * current flash generation. Tradeoff: the serving model can change under us,
- * which is why every published metric is labeled with the model that produced
- * it at measurement time.
+ * Why lite, and why an alias (measured 2026-07-16 on a fresh free key):
+ * pinned `gemini-2.5-flash` is refused for new keys, and `gemini-flash-latest`
+ * resolves to gemini-3.5-flash whose free quota is ~20 requests/DAY — one
+ * visitor would black out the demo. The flash-lite alias carries a real free
+ * quota (~15 RPM / ~1,000 RPD). Tradeoff: the serving model can change under
+ * us, which is why every published metric is labeled with the model that
+ * produced it at measurement time.
  */
-export const GEMINI_MODEL = "gemini-flash-latest";
+export const GEMINI_MODEL = "gemini-flash-lite-latest";
 
 /**
  * FALLBACK: Groq's `llama-3.3-70b-versatile`, served over Groq's OpenAI-compatible
