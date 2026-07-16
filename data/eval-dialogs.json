@@ -1,0 +1,178 @@
+[
+  {
+    "id": "hp-tomorrow",
+    "category": "happy",
+    "description": "Books for 'tomorrow', accepts earliest slot",
+    "turns": [
+      "Hi, I'd like to book a Tessera product demo for tomorrow.",
+      "The earliest time you have works for me. My name is Alex Kim and my email is alex.kim@acme.co.",
+      "Yes, please book it."
+    ],
+    "expectSubsequence": ["checkAvailability", "bookAppointment"],
+    "expectBookings": 1
+  },
+  {
+    "id": "hp-next-tuesday",
+    "category": "happy",
+    "description": "Books for 'next Tuesday'",
+    "turns": [
+      "Can I schedule a demo for next Tuesday?",
+      "Let's take the earliest slot that day. I'm Dana Lopez, dana@brightloop.io.",
+      "That's correct, go ahead and book it."
+    ],
+    "expectSubsequence": ["checkAvailability", "bookAppointment"],
+    "expectBookings": 1
+  },
+  {
+    "id": "hp-monday-10am",
+    "category": "happy",
+    "description": "Books a specific day and time",
+    "turns": [
+      "I'd like to book a demo. What do you have on Monday?",
+      "10 AM is perfect. Name is Priya Nair, email priya@quanta.dev.",
+      "Yes, that's right."
+    ],
+    "expectSubsequence": ["checkAvailability", "bookAppointment"],
+    "expectBookings": 1
+  },
+  {
+    "id": "hp-all-upfront",
+    "category": "happy",
+    "description": "Caller gives name + email + go-ahead early",
+    "turns": [
+      "I'd like the next available demo slot, please.",
+      "My name is Sam Reyes, email sam@meridian.hk. Yes, book the first one for me."
+    ],
+    "expectSubsequence": ["checkAvailability", "bookAppointment"],
+    "expectBookings": 1
+  },
+  {
+    "id": "hp-wed-afternoon",
+    "category": "happy",
+    "description": "Books a Wednesday afternoon slot",
+    "turns": [
+      "Do you have anything Wednesday afternoon for a demo?",
+      "2 PM works great. I'm Noah Feld, noah@granite.de.",
+      "Confirmed, thanks."
+    ],
+    "expectSubsequence": ["checkAvailability", "bookAppointment"],
+    "expectBookings": 1
+  },
+  {
+    "id": "hp-this-week",
+    "category": "happy",
+    "description": "Vague 'this week' but agrees to earliest",
+    "turns": [
+      "I'd love to set up a Tessera demo sometime this week.",
+      "Whatever's earliest is fine. Grace Lin, grace@meridian.hk.",
+      "Yep, lock it in."
+    ],
+    "expectSubsequence": ["checkAvailability", "bookAppointment"],
+    "expectBookings": 1
+  },
+  {
+    "id": "amb-soon",
+    "category": "ambiguous",
+    "description": "Vague 'soon', never commits to a day — must not book",
+    "turns": [
+      "I want to book a demo sometime soon.",
+      "Hmm, let me check my calendar first and get back to you."
+    ],
+    "expectSubsequence": [],
+    "expectBookings": 0
+  },
+  {
+    "id": "amb-maybe-next-week",
+    "category": "ambiguous",
+    "description": "Non-committal about the day — must not guess a date",
+    "turns": [
+      "Maybe next week could work for a demo?",
+      "I'm honestly not sure which day yet."
+    ],
+    "expectSubsequence": [],
+    "expectBookings": 0
+  },
+  {
+    "id": "taken-friday-alt",
+    "category": "taken",
+    "description": "Friday is full; accepts the next open day",
+    "turns": [
+      "Can I get a demo this Friday?",
+      "Oh, that's a shame. Then whatever the next open day is works. I'm Liam Byrne, liam@shamrock.ie.",
+      "Yes, book that one."
+    ],
+    "expectSubsequence": ["checkAvailability", "bookAppointment"],
+    "expectBookings": 1
+  },
+  {
+    "id": "taken-friday-alt2",
+    "category": "taken",
+    "description": "Asks for Friday, agrees to earliest after it",
+    "turns": [
+      "I'd like to book a demo for Friday.",
+      "If Friday is full, the earliest slot after that is fine. Keiko Tanaka, keiko@sakura-labs.jp.",
+      "Please go ahead and book it."
+    ],
+    "expectSubsequence": ["checkAvailability", "bookAppointment"],
+    "expectBookings": 1
+  },
+  {
+    "id": "lookup-existing",
+    "category": "lookup",
+    "description": "Looks up a real confirmation code",
+    "seedBooking": true,
+    "turns": [
+      "Can you look up my booking? The confirmation code is TFD-DEMO."
+    ],
+    "expectSubsequence": ["lookupBooking"],
+    "expectArgs": [
+      { "tool": "lookupBooking", "arg": "confirmationCode", "valueIncludes": "TFD-DEMO" }
+    ],
+    "expectBookings": 1
+  },
+  {
+    "id": "lookup-missing",
+    "category": "lookup",
+    "description": "Looks up a code that doesn't exist",
+    "turns": [
+      "Could you check the booking with code TFD-ZZ99 for me?"
+    ],
+    "expectSubsequence": ["lookupBooking"],
+    "expectArgs": [
+      { "tool": "lookupBooking", "arg": "confirmationCode", "valueIncludes": "TFD-ZZ99" }
+    ],
+    "expectBookings": 0
+  },
+  {
+    "id": "offtopic-weather",
+    "category": "offtopic",
+    "description": "Off-topic question — polite redirect, no tools",
+    "turns": [
+      "What's the weather like today?",
+      "Okay, never mind then."
+    ],
+    "expectSubsequence": [],
+    "expectBookings": 0
+  },
+  {
+    "id": "offtopic-joke",
+    "category": "offtopic",
+    "description": "Off-topic request — polite redirect, no tools",
+    "turns": [
+      "Can you tell me a joke?"
+    ],
+    "expectSubsequence": [],
+    "expectBookings": 0
+  },
+  {
+    "id": "changed-mind",
+    "category": "changed-mind",
+    "description": "Starts booking then backs out — must not book",
+    "turns": [
+      "I'd like to book a demo for Monday.",
+      "Actually, you know what, let me hold off for now. I'll book later."
+    ],
+    "expectSubsequence": [],
+    "expectBookings": 0
+  }
+]

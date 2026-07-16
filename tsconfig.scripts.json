@@ -15,5 +15,10 @@
     "isolatedModules": true,
     "types": ["node"]
   },
-  "include": ["scripts/**/*.ts", "lib/**/*.ts", "data/**/*.json"]
+  // Only the scripts are listed; the lib modules they use are pulled into the
+  // program (and type-checked) through the import graph. This deliberately keeps
+  // client-only lib files (lib/speech.ts, which touches `window`) OUT of the
+  // Node-flavoured scripts program — they are checked by the app tsconfig, which
+  // has the DOM lib.
+  "include": ["scripts/**/*.ts", "data/**/*.json"]
 }
