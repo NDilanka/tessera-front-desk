@@ -1,0 +1,10 @@
+# Normalize line endings: store as LF in the repo, check out native locally.
+# Keeps the Linux/Vercel build free of CRLF churn from Windows commits.
+* text=auto eol=lf
+
+# Binary/generated assets that shouldn't be diffed or line-normalized.
+*.png binary
+*.jpg binary
+*.gif binary
+*.ico binary
+package-lock.json -diff
