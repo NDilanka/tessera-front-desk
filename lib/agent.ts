@@ -32,6 +32,9 @@ export interface RunAgentOptions {
 export interface ToolCallRecord {
   name: string;
   args: Record<string, unknown>;
+  /** The tool's returned output for this call. Populated for observability
+   *  (the eval's verbose transcript); ignored by the route and smoke test. */
+  result?: unknown;
 }
 
 export interface AgentResult {
@@ -80,11 +83,20 @@ export function buildTools(onBooking: (b: BookingConfirmation) => void) {
           };
         }
         if (result.reason === "unknown_slot") {
+          // Self-correct in-turn: hand back the exact valid slotIds and tell the
+          // model to retry the booking now — do NOT re-run checkAvailability
+          // (that just burns steps and the free-tier quota). The most common
+          // cause is the model reformatting the slotId it was given.
+          const open = await getOpenSlots(undefined, 6);
           return {
             ok: false as const,
             error: "unknown_slot",
+            validSlotIds: open.map((s) => s.slotId),
             message:
-              "That slot id is not one I offered. Call checkAvailability again and only book a slot it returns.",
+              "That exact slotId was not found — you likely reformatted it. " +
+              "Call bookAppointment again RIGHT NOW using one of the slotId " +
+              "strings in validSlotIds, copied character-for-character (do not " +
+              "add seconds or a 'Z', and do not re-run checkAvailability).",
           };
         }
         if (result.reason === "calendar_full") {
@@ -132,10 +144,15 @@ function collectToolCalls(
 ): ToolCallRecord[] {
   const calls: ToolCallRecord[] = [];
   for (const step of steps) {
+    const resultById = new Map<string, unknown>();
+    for (const r of step.toolResults) {
+      resultById.set(r.toolCallId, (r as { output?: unknown }).output);
+    }
     for (const call of step.toolCalls) {
       calls.push({
         name: call.toolName,
         args: (call.input ?? {}) as Record<string, unknown>,
+        result: resultById.get(call.toolCallId),
       });
     }
   }

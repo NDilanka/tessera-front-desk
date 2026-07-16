@@ -20,12 +20,14 @@ export const toolSpecs = {
   },
   bookAppointment: {
     description:
-      "Book a demo call into an EXACT slot. `slotId` must be copied verbatim from a slot that checkAvailability returned in this conversation — never a free-text date or a slot you made up. Confirm the slot, name, and email with the caller before calling this.",
+      "Book a demo call into an EXACT slot. Call this as soon as the caller has accepted a slot and given their name and email and told you to book (or already said to book the first/earliest one) — do NOT re-run checkAvailability first. `slotId` must be one that checkAvailability returned in this conversation, copied character-for-character. Never a free-text date, never one you made up, and never reformatted — do not add seconds or a 'Z', do not change 'T' to a dash. Paste it exactly as given, e.g. 2026-07-20T10:00.",
     inputSchema: z.object({
       slotId: z
         .string()
         .min(1)
-        .describe("The exact slotId string from a checkAvailability result."),
+        .describe(
+          "The exact slotId string from a checkAvailability result, copied verbatim (e.g. \"2026-07-20T10:00\"). Do not reformat, complete, or normalize it.",
+        ),
       name: z.string().min(1).describe("The caller's full name."),
       email: z
         .string()

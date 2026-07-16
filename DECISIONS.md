@@ -28,10 +28,12 @@ concern, not an agent concern.
 The single biggest failure mode for a booking agent is **inventing a time or a
 confirmation code**. Two mechanisms prevent it:
 
-- **`checkAvailability` returns explicit, opaque `slotId`s** (e.g.
+- **`checkAvailability` returns explicit `slotId`s** (e.g.
   `2026-07-20T10:00`) alongside human labels. The system prompt instructs the
   model to *only* ever offer or book a slot it was handed, and never to reword or
-  invent one.
+  invent one. (These ids are *not* truly opaque — they are ISO minutes, which a
+  weaker model likes to "normalize" on the way back into bookAppointment; see
+  #11 for how that is handled without weakening the guard.)
 - **`bookAppointment` takes a `slotId`, never a free-text date.** The tool
   re-validates that the slot exists and is free before booking; an unknown slotId
   is rejected with an error the model must relay. So even if the model *did*
@@ -192,3 +194,41 @@ database, not the transcript (#2, #6). A forged assistant turn can make the mode
 *say* something, but it cannot conjure a real slot claim or a valid `TFD-XXXX`
 code — those only exist if `bookSlot` actually wrote a row. The transcript is a
 convenience for the model’s context, never a source of truth.
+
+## 11. slotId fidelity — tolerate reformatting, don't invite it
+
+The `slotId` (`2026-07-20T10:00`) *looks* like a datetime, so weaker models
+(gemini-flash-lite) don't copy it verbatim into `bookAppointment` — they
+"complete" it. Verbose eval transcripts caught three drift patterns on the same
+run: `2026-07-22T14:00:00Z` (added seconds + `Z`), `2026-07-20-1000` (dash +
+`HHMM`), and `slot-0720-1000` (invented a `slot-` shape entirely). Each was
+rejected as `unknown_slot`, so the booking silently never landed — the dominant
+cause of the eval's sub-gate score. (Tellingly, the model copies the genuinely
+opaque `TFD-XXXX` confirmation codes perfectly — proof that the datetime *shape*
+is what invites the meddling.)
+
+Three complementary fixes, cheapest-blast-radius first, none of which weakens the
+anti-invention guard (#2):
+
+- **Server-side canonicalization** (`lib/queries.ts` `canonicalSlotId`). Before
+  rejecting a slotId, reconstruct the canonical `YYYY-MM-DDTHH:00` from the date
+  and hour it contains and match *that* against the calendar. The result is only
+  ever looked up against a slot that genuinely exists, and the atomic
+  `status='free'` claim still gates the write — so a fully made-up id (no
+  `YYYY-MM-DD`, or a date with no real slot) is still rejected exactly as before.
+  The smoke test's `2099-01-01T09:00` bogus-slot case still fails as designed.
+- **A self-correcting `unknown_slot` error** (`lib/agent.ts`). It now returns the
+  exact `validSlotIds` and tells the model to retry `bookAppointment` *in the same
+  turn* — explicitly *not* to re-run `checkAvailability` (the old message told it
+  to, which just burned steps and free-tier quota and stalled the turn).
+- **Prompt + tool-spec** (`lib/config.ts`, `lib/specs.ts`) now say to copy the id
+  character-for-character (no seconds, no `Z`, no reshaping) and to call
+  `bookAppointment` immediately once the caller has picked a slot and given
+  name + email and confirmed — instead of re-checking availability first.
+
+Kept as a permanent debugging aid: `npm run eval` gained `--only=id1,id2` (or
+`EVAL_ONLY=`) to run a subset and `--verbose` (or `EVAL_VERBOSE=1`) to print each
+turn's spoken reply plus every tool call with its args and result — how the three
+drift patterns above were diagnosed in the first place. `ToolCallRecord` now
+carries the tool's `result` for that transcript (ignored by the route and smoke
+test).

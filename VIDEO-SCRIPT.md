@@ -23,7 +23,8 @@ right back up by voice using that code.
 
 **[Metrics — 0:40]**
 Under the hood it’s a tool-using agent. A 15-conversation eval scores it on
-booking the right slot and never inventing one — task-completion rate right here.
+booking the right slot and never inventing one — 100% task-completion, 15 of 15
+(gemini-flash-lite-latest, 2026-07-16, `npm run eval`) right here.
 
 **[Firefox fallback — 0:48]**
 No microphone, or on Firefox? It falls back to text automatically — same agent,

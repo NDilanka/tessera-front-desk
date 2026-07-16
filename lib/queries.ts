@@ -55,6 +55,43 @@ export async function getSlotById(slotId: string): Promise<Slot | null> {
   return (rows<Slot>(r)[0] as Slot | undefined) ?? null;
 }
 
+/**
+ * Canonicalize a slotId the model may have re-formatted while echoing it back.
+ * A slotId is a bare ISO minute ("2026-07-20T10:00"), and weaker models like to
+ * "helpfully" normalize it — appending seconds/`Z` ("...T10:00:00Z"), swapping
+ * the `T` for a dash ("2026-07-20-1000"), etc. We reconstruct the canonical form
+ * from the date + hour it contains so a real, offered slot is still matched.
+ *
+ * This does NOT weaken the anti-invention guard (DECISIONS.md #2): the result is
+ * only ever looked up against a slot that actually exists, and booking still
+ * requires it to be free. A fully made-up id (no YYYY-MM-DD, or a date with no
+ * matching slot) resolves to nothing and is rejected exactly as before.
+ *
+ * Returns the canonical `YYYY-MM-DDTHH:00`, or null if no date+hour is present.
+ */
+export function canonicalSlotId(raw: string): string | null {
+  const dateMatch = raw.match(/(\d{4})-(\d{2})-(\d{2})/);
+  if (!dateMatch) return null;
+  const [, y, mo, d] = dateMatch;
+  const rest = raw.slice((dateMatch.index ?? 0) + dateMatch[0].length);
+  const digits = rest.match(/\d+/);
+  if (!digits) return null;
+  const run = digits[0];
+  // A 3–4 digit run is HMM/HHMM (drop the trailing minutes); 1–2 digits is the hour.
+  const hour = run.length >= 3 ? Number(run.slice(0, run.length - 2)) : Number(run);
+  if (!Number.isInteger(hour) || hour < 0 || hour > 23) return null;
+  return `${y}-${mo}-${d}T${String(hour).padStart(2, "0")}:00`;
+}
+
+/** Look up a slot by its exact id, falling back to the canonicalized form. */
+async function resolveSlot(slotId: string): Promise<Slot | null> {
+  const exact = await getSlotById(slotId);
+  if (exact) return exact;
+  const canonical = canonicalSlotId(slotId);
+  if (canonical && canonical !== slotId) return getSlotById(canonical);
+  return null;
+}
+
 export async function countActiveBookings(): Promise<number> {
   const r = await db.execute("SELECT COUNT(*) AS n FROM bookings");
   return Number((r.rows[0] as unknown as { n: number }).n);
@@ -98,8 +135,10 @@ export async function bookSlot(
     return { ok: false, reason: "calendar_full" };
   }
 
-  const slot = await getSlotById(slotId);
+  const slot = await resolveSlot(slotId);
   if (!slot) return { ok: false, reason: "unknown_slot" };
+  // Book against the slot's real id, not whatever variant the model echoed.
+  slotId = slot.slotId;
 
   const claim = await db.execute({
     sql: "UPDATE slots SET status = 'booked' WHERE slotId = ? AND status = 'free'",

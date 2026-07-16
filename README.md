@@ -99,10 +99,13 @@ The eval (`npm run eval`) runs 15 scripted multi-turn conversations through the
 real agent against a freshly-seeded database and reports a **task-completion
 rate** (gate ≥ 80%, i.e. 12/15) plus tool-sequence accuracy.
 
-> **Metrics: [PENDING]** — the numbers are filled in from a live run once a
-> `GEMINI_API_KEY` is present. Without a key the eval prints a *pending* notice
-> and exits cleanly (it does not fabricate a score). Re-run `npm run eval` after
-> adding a key and paste the printed rates here.
+> **Metrics** (`gemini-flash-lite-latest`, 2026-07-16, `npm run eval`):
+> **task-completion 15/15 (100%)** · tool-sequence accuracy 15/15 (100%).
+>
+> Measured on the free-tier `gemini-flash-lite-latest` alias — labeled with the
+> model and date because that alias's serving model can drift under us. Without a
+> `GEMINI_API_KEY` the eval prints a *pending* notice and exits cleanly (it never
+> fabricates a score); re-run `npm run eval` with a key to reproduce.
 
 ## Cost
 

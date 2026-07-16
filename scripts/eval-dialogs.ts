@@ -53,6 +53,32 @@ interface EvalDialog {
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
+// --- Debug knobs (opt-in; no effect on a normal `npm run eval`) -------------
+// Run a subset:  npm run eval -- --only=hp-all-upfront,taken-friday-alt
+//   (or env EVAL_ONLY="id1,id2"). Print full per-turn transcripts with tool
+// calls, args, and results:  npm run eval -- --verbose  (or EVAL_VERBOSE=1).
+const ARGV = process.argv.slice(2);
+function flagValue(name: string): string | undefined {
+  const pref = `--${name}=`;
+  const hit = ARGV.find((a) => a.startsWith(pref));
+  return hit ? hit.slice(pref.length) : undefined;
+}
+const ONLY_IDS = (flagValue("only") ?? process.env.EVAL_ONLY ?? "")
+  .split(",")
+  .map((s) => s.trim())
+  .filter(Boolean);
+const VERBOSE = ARGV.includes("--verbose") || Boolean(process.env.EVAL_VERBOSE);
+
+function logTurn(userTurn: string, replyText: string, turnCalls: ToolCallRecord[]) {
+  console.log(`    > user: ${userTurn}`);
+  for (const c of turnCalls) {
+    console.log(
+      `      ⚙ ${c.name}(${JSON.stringify(c.args)}) -> ${JSON.stringify(c.result)}`,
+    );
+  }
+  console.log(`    < agent: ${replyText}`);
+}
+
 /** Is `sub` an in-order subsequence of `seq`? */
 function isSubsequence(sub: string[], seq: string[]): boolean {
   let i = 0;
@@ -100,12 +126,20 @@ async function main() {
     process.exit(0);
   }
 
-  const dialogs = JSON.parse(await fs.readFile(DIALOGS_PATH, "utf-8")) as EvalDialog[];
+  const allDialogs = JSON.parse(await fs.readFile(DIALOGS_PATH, "utf-8")) as EvalDialog[];
+  // Preserve original 1-based numbering even when running a subset.
+  const numbered = allDialogs.map((d, i) => ({ d, n: i + 1 }));
+  const selected = ONLY_IDS.length
+    ? numbered.filter((x) => ONLY_IDS.includes(x.d.id))
+    : numbered;
+  if (ONLY_IDS.length) {
+    console.log(`(subset: ${selected.map((x) => x.d.id).join(", ") || "none matched"})`);
+  }
   const { modelId, provider } = resolveAgent();
   const paced = provider === "google";
 
   console.log(
-    `Running ${dialogs.length} dialogs against ${modelId} (provider: ${provider})` +
+    `Running ${selected.length} dialogs against ${modelId} (provider: ${provider})` +
       (paced ? ` [free-tier pacing: ${INTER_TURN_DELAY_MS / 1000}s between turns]` : "") +
       "\n",
   );
@@ -115,7 +149,7 @@ async function main() {
   let firstCall = true;
   const rows: string[] = [];
 
-  for (const [i, dialog] of dialogs.entries()) {
+  for (const { d: dialog, n } of selected) {
     await runSeed();
     if (dialog.seedBooking) await seedKnownBooking();
 
@@ -123,6 +157,7 @@ async function main() {
     const calls: ToolCallRecord[] = [];
     let errored = "";
 
+    if (VERBOSE) console.log(`\n── #${String(n).padStart(2, "0")} ${dialog.id} [${dialog.category}] ──`);
     for (const userTurn of dialog.turns) {
       if (paced && !firstCall) await sleep(INTER_TURN_DELAY_MS);
       firstCall = false;
@@ -131,6 +166,7 @@ async function main() {
         const res = await runAgent(transcript);
         transcript.push({ role: "assistant", content: res.text || "(no reply)" });
         calls.push(...res.toolCalls);
+        if (VERBOSE) logTurn(userTurn, res.text || "(no reply)", res.toolCalls);
       } catch (err) {
         errored = err instanceof Error ? err.message : String(err);
         break;
@@ -148,7 +184,7 @@ async function main() {
     if (pass) passed += 1;
 
     rows.push(
-      `${pass ? "PASS" : "FAIL"}  #${String(i + 1).padStart(2, "0")}  [${dialog.category}]  ${dialog.id}\n` +
+      `${pass ? "PASS" : "FAIL"}  #${String(n).padStart(2, "0")}  [${dialog.category}]  ${dialog.id}\n` +
         `        tools: [${names.join(", ") || "—"}]  expect⊇[${dialog.expectSubsequence.join(", ") || "—"}]` +
         `  bookings: ${bookings}/${dialog.expectBookings}` +
         (errored ? `  ERROR: ${errored}` : "") +
@@ -160,7 +196,7 @@ async function main() {
 
   console.log(rows.join("\n"));
 
-  const n = dialogs.length;
+  const n = selected.length;
   const completion = (passed / n) * 100;
   const seqAccuracy = (sequenceOk / n) * 100;
   console.log(
@@ -168,6 +204,11 @@ async function main() {
   );
   console.log(`task-completion rate:   ${passed}/${n} (${completion.toFixed(1)}%)`);
 
+  if (ONLY_IDS.length) {
+    // Subset/debug run — the ≥80% gate only applies to the full 15-dialog suite.
+    console.log("\n(subset run — gate not evaluated)");
+    process.exit(0);
+  }
   if (passed / n < PASS_THRESHOLD) {
     console.error(
       `\nFAIL: task-completion ${completion.toFixed(1)}% is below the ${PASS_THRESHOLD * 100}% gate.`,
