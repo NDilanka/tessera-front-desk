@@ -29,7 +29,11 @@ const DIALOGS_PATH = path.resolve(__dirname, "..", "data", "eval-dialogs.json");
 /** Task-completion rate must be at least this for the eval to succeed. */
 const PASS_THRESHOLD = 0.8;
 /** Inter-turn delay on the Gemini free tier (~10 RPM). */
-const INTER_TURN_DELAY_MS = 7_000;
+// A single turn can burst up to MAX_STEPS (6) back-to-back model calls with no
+// pacing between steps, and the free-tier window is ~20 requests/min (measured
+// on gemini-3.5-flash, 2026-07-16). 22s between turns keeps the worst-case
+// burst rate under the window: 6 calls / 22s ≈ 16/min.
+const INTER_TURN_DELAY_MS = 22_000;
 
 interface ArgCheck {
   tool: string;
