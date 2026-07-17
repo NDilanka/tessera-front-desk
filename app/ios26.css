@@ -653,8 +653,9 @@ input.field-search { padding-left: var(--space-7); border-radius: var(--radius-c
   letter-spacing: var(--track-footnote);
   white-space: nowrap;
   --badge-color: var(--system-gray);
-  /* Mix toward label so 13px text clears WCAG AA on the 15% tint background. */
-  color: color-mix(in srgb, var(--badge-color) 72%, var(--label));
+  /* Mix toward label so 13px text clears WCAG AA on the 15% tint background.
+     60% verified: green (worst case) measures ~5:1 in light mode at this ratio. */
+  color: color-mix(in srgb, var(--badge-color) 60%, var(--label));
   background: color-mix(in srgb, var(--badge-color) 15%, transparent);
 }
 .badge-green  { --badge-color: var(--system-green); }
