@@ -226,20 +226,26 @@ export default function Home() {
 
   return (
     <div className="shell">
-      <header className="masthead">
-        <div className="brand">
+      <header className="topbar">
+        <div className="nav-glass topnav">
           <span className="dot" aria-hidden />
+          <span className="topnav-title">Tessera</span>
+          {ALLOW_PUBLIC_RESET ? (
+            <button className="reset-link" onClick={onReset}>
+              Reset demo
+            </button>
+          ) : null}
+        </div>
+      </header>
+
+      <div className="masthead">
+        <div className="brand">
           <span>
             Tessera Front Desk
             <small>Voice booking · demo calls</small>
           </span>
         </div>
-        {ALLOW_PUBLIC_RESET ? (
-          <button className="reset-link" onClick={onReset}>
-            Reset demo
-          </button>
-        ) : null}
-      </header>
+      </div>
 
       <section className="stage">
         <VoiceOrb
@@ -248,7 +254,13 @@ export default function Home() {
           disabled={textMode && state !== "speaking"}
         />
         <div className="status-line">
-          {notice ? <b>{notice}</b> : STATUS[state]}
+          {notice ? (
+            <b>{notice}</b>
+          ) : textMode && state === "idle" ? (
+            "Type your message and press Send."
+          ) : (
+            STATUS[state]
+          )}
         </div>
 
         <div className="controls">
