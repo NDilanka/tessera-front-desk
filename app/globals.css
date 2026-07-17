@@ -78,7 +78,6 @@ body {
   /* Avoid glass-on-glass inside the glass capsule: use a plain fill. */
   background: var(--fill);
   backdrop-filter: none;
-  -webkit-backdrop-filter: none;
 }
 
 /* --- Masthead — Large Title treatment ------------------------------------- */
@@ -129,7 +128,6 @@ body {
   border: 0.5px solid var(--glass-border);
   background: rgb(var(--glass-surface) / var(--glass-opacity));
   backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
   color: var(--label);
   font: var(--weight-medium) var(--text-footnote) / 1 var(--font-system);
   letter-spacing: var(--track-footnote);
@@ -150,7 +148,6 @@ body {
 .reduce-transparency .reset-link {
   background: var(--fill);
   backdrop-filter: none;
-  -webkit-backdrop-filter: none;
 }
 
 /* --- Stage / Liquid Glass orb --------------------------------------------- */
@@ -211,7 +208,6 @@ body {
     radial-gradient(circle at 50% 46%, rgb(var(--glass-surface) / 0.62), rgb(var(--glass-surface) / 0.30)),
     var(--bg-2);
   backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
   box-shadow:
     inset 0 2px 6px var(--glass-specular),
     inset 0 -12px 24px -10px color-mix(in srgb, var(--state-color, var(--tint)) 45%, transparent),
@@ -253,7 +249,6 @@ body {
 
 .reduce-transparency .orb {
   backdrop-filter: none;
-  -webkit-backdrop-filter: none;
 }
 
 /* State pulse ring (preserved), state-colored. */
@@ -464,7 +459,6 @@ body {
   border-radius: var(--radius-card);
   background: rgb(var(--glass-surface) / var(--glass-opacity));
   backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
   border: 0.5px solid var(--glass-border);
   box-shadow: inset 0 0.5px 0 var(--glass-specular), var(--glass-shadow);
   color: var(--label);
@@ -475,7 +469,6 @@ body {
 .reduce-transparency .card {
   background: var(--bg-2);
   backdrop-filter: none;
-  -webkit-backdrop-filter: none;
 }
 @media (prefers-contrast: more) {
   .card { border-width: 1px; }

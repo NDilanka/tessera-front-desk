@@ -274,8 +274,9 @@
 .glass {
   position: relative;
   background: rgb(var(--glass-surface) / var(--glass-opacity));
+  /* No manual -webkit- prefix: Lightning CSS collapses the pair into
+     prefix-only output, which modern Chrome ignores (blur silently lost). */
   backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
   border: 0.5px solid var(--glass-border);
   box-shadow: inset 0 0.5px 0 var(--glass-specular), var(--glass-shadow);
   color: var(--label);
@@ -286,7 +287,6 @@
   position: relative;
   background: rgb(var(--glass-surface) / var(--glass-opacity-clear));
   backdrop-filter: blur(8px) saturate(1.3);
-  -webkit-backdrop-filter: blur(8px) saturate(1.3);
   border: 0.5px solid var(--glass-border);
   color: var(--label);
 }
@@ -311,7 +311,6 @@
 .reduce-transparency .glass-clear {
   background: var(--bg-2);
   backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
 }
 .reduce-transparency .glass-clear.is-bright::before { background: none; }
 
@@ -357,8 +356,9 @@
 /* Glass button — chrome affordance. */
 .btn-glass {
   background: rgb(var(--glass-surface) / var(--glass-opacity));
+  /* No manual -webkit- prefix: Lightning CSS collapses the pair into
+     prefix-only output, which modern Chrome ignores (blur silently lost). */
   backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
   border: 0.5px solid var(--glass-border);
   box-shadow: inset 0 0.5px 0 var(--glass-specular);
   color: var(--label);
@@ -366,7 +366,7 @@
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
   .btn-glass { background: var(--fill); }
 }
-.reduce-transparency .btn-glass { background: var(--fill); backdrop-filter: none; -webkit-backdrop-filter: none; }
+.reduce-transparency .btn-glass { background: var(--fill); backdrop-filter: none; }
 
 /* Plain (borderless text) button. */
 .btn-plain { padding: 0 var(--space-3); background: transparent; color: var(--tint); }
@@ -445,8 +445,9 @@
   padding: var(--space-2) var(--space-3);
   border-radius: var(--radius-capsule);
   background: rgb(var(--glass-surface) / var(--glass-opacity));
+  /* No manual -webkit- prefix: Lightning CSS collapses the pair into
+     prefix-only output, which modern Chrome ignores (blur silently lost). */
   backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
   border: 0.5px solid var(--glass-border);
   box-shadow: inset 0 0.5px 0 var(--glass-specular), var(--glass-shadow);
   color: var(--label);
@@ -454,7 +455,7 @@
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
   .nav-glass { background: var(--bg-2); }
 }
-.reduce-transparency .nav-glass { background: var(--bg-2); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); }
+.reduce-transparency .nav-glass { background: var(--bg-2); backdrop-filter: blur(4px); }
 @media (prefers-contrast: more) { .nav-glass { border-width: 1px; } }
 
 .toolbar-icon-btn {
@@ -608,8 +609,9 @@ input.field-search { padding-left: var(--space-7); border-radius: var(--radius-c
   border-radius: var(--radius-card) var(--radius-card) 0 0;
   padding: var(--space-5) var(--space-5) var(--space-6);
   background: rgb(var(--glass-surface) / 0.80);
+  /* No manual -webkit- prefix: Lightning CSS collapses the pair into
+     prefix-only output, which modern Chrome ignores (blur silently lost). */
   backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
   border: 0.5px solid var(--glass-border);
   box-shadow: inset 0 0.5px 0 var(--glass-specular), 0 -8px 40px rgba(0, 0, 0, 0.25);
   color: var(--label);
@@ -617,7 +619,7 @@ input.field-search { padding-left: var(--space-7); border-radius: var(--radius-c
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
   .sheet { background: var(--bg-2); }
 }
-.reduce-transparency .sheet { background: var(--bg-2); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); }
+.reduce-transparency .sheet { background: var(--bg-2); backdrop-filter: blur(4px); }
 @media (prefers-contrast: more) { .sheet { border-width: 1px; } }
 
 .grabber {
