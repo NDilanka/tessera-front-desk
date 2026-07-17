@@ -1,12 +1,14 @@
 "use client";
 
+import { Mic, Loader2, Volume2 } from "lucide-react";
 import type { AgentState } from "@/lib/types-client";
 
-const GLYPH: Record<AgentState, string> = {
-  idle: "🎙️",
-  listening: "●",
-  thinking: "…",
-  speaking: "🔊",
+/** iOS 26 Liquid Glass sphere: lucide glyph per state. */
+const GLYPH: Record<AgentState, React.ReactNode> = {
+  idle: <Mic strokeWidth={1.8} aria-hidden />,
+  listening: <Mic strokeWidth={1.8} aria-hidden />,
+  thinking: <Loader2 strokeWidth={1.8} aria-hidden />,
+  speaking: <Volume2 strokeWidth={1.8} aria-hidden />,
 };
 
 const LABEL: Record<AgentState, string> = {
@@ -17,9 +19,11 @@ const LABEL: Record<AgentState, string> = {
 };
 
 /**
- * The single focal control: a state-colored orb. Tapping it drives the whole
- * half-duplex flow — start listening from idle, or cancel speech (→ listening)
- * while speaking. Disabled during `thinking` (nothing to interrupt server-side).
+ * The single focal control: a state-colored Liquid Glass orb. Tapping it drives
+ * the whole half-duplex flow — start listening from idle, or cancel speech
+ * (→ listening) while speaking. Disabled during `thinking` (nothing to interrupt
+ * server-side). The `state-{...}` wrap class + `--state-color` variable drive the
+ * sphere's glow, tint wash and pulse ring (see globals.css).
  */
 export function VoiceOrb({
   state,
@@ -40,7 +44,10 @@ export function VoiceOrb({
         disabled={disabled || state === "thinking"}
         aria-label={LABEL[state]}
       >
-        <span className="glyph" aria-hidden>
+        <span
+          className={`glyph${state === "thinking" ? " is-spinning" : ""}`}
+          aria-hidden
+        >
           {GLYPH[state]}
         </span>
       </button>

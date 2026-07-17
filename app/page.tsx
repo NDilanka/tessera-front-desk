@@ -55,6 +55,16 @@ export default function Home() {
     if (!supported) setTextMode(true);
   }, []);
 
+  // Honor "Reduce Transparency" — makes glass surfaces opaque (see ios26.css).
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-reduced-transparency: reduce)");
+    const apply = () =>
+      document.documentElement.classList.toggle("reduce-transparency", mq.matches);
+    apply();
+    mq.addEventListener("change", apply);
+    return () => mq.removeEventListener("change", apply);
+  }, []);
+
   const userTurns = messages.filter((m) => m.role === "user").length;
 
   // --- Server turn ----------------------------------------------------------
