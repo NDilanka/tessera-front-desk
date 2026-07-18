@@ -430,8 +430,9 @@ body {
 }
 .bubble.user {
   align-self: flex-end;
-  /* Darkened tint so white text clears AA (plain --tint was ~4.1:1). */
-  background: color-mix(in srgb, var(--tint) 85%, black);
+  /* Filled petrol accent — identical across the app family; --tint-contrast
+     supplies the per-scheme readable text (white light / near-black dark). */
+  background: var(--tint);
   color: var(--tint-contrast);
   border-bottom-right-radius: 6px;
 }
@@ -443,7 +444,7 @@ body {
 }
 .bubble.interim {
   align-self: flex-end;
-  background: color-mix(in srgb, var(--tint) 85%, black);
+  background: var(--tint);
   color: var(--tint-contrast);
   border-bottom-right-radius: 6px;
   opacity: 0.5;
