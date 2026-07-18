@@ -16,6 +16,10 @@
    1. Tokens — accent palette (Apple-published exact RGB, §2 default-light)
    --------------------------------------------------------------------------- */
 :root {
+  /* Let native widgets (select popups, scrollbars, pickers) follow the active
+     scheme — without this Chrome renders them light on dark pages. */
+  color-scheme: light dark;
+
   --system-red:    rgb(255, 56, 60);
   --system-orange: rgb(255, 141, 40);
   --system-yellow: rgb(255, 204, 0);
