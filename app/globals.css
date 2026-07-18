@@ -1,11 +1,10 @@
 /* Tessera Front Desk — page + component styles, built on ios26.css tokens.
    iOS 26 "Liquid Glass". Light AND dark come from the tokens (never hard-code an
    appearance). Glass = chrome only (orb sphere + confirmation receipt); the
-   transcript is opaque content. Accent = systemPurple. */
+   transcript is opaque content. Accent = Tessera Petrol (from ios26.css). */
 
-/* --- App accent + page-level vars ----------------------------------------- */
+/* --- Page-level vars ------------------------------------------------------- */
 :root {
-  --tint: var(--system-purple);
   --shadow-content: 0 1px 3px rgba(0, 0, 0, 0.06);
   /* Orb tuning — light needs a darker rim + softer tint wash so the glass reads
      on the light background (in dark the white rim + stronger wash work). */
@@ -99,8 +98,7 @@ body {
   height: 14px;
   border-radius: 50%;
   background: radial-gradient(circle at 32% 28%, var(--glass-specular) 0%, transparent 45%),
-    linear-gradient(140deg, var(--tint), color-mix(in srgb, var(--tint) 50%, var(--system-pink)));
-  box-shadow: 0 0 16px color-mix(in srgb, var(--tint) 60%, transparent);
+    var(--tint);
 }
 .brand > span {
   display: block;
@@ -318,7 +316,7 @@ body {
   padding: 0 var(--space-3);
   border: none;
   background: transparent;
-  /* Darken toward label so purple clears AA on the light background. */
+  /* Darken toward label so the petrol accent clears AA on the light background. */
   color: color-mix(in srgb, var(--tint) 80%, var(--label));
   font: var(--weight-semibold) var(--text-subhead) / 1 var(--font-system);
   letter-spacing: var(--track-subhead);

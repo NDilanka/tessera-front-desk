@@ -119,7 +119,7 @@ export default function Home() {
         return;
       }
       if (userTurns >= MAX_TURNS) {
-        setNotice("Session limit reached — reset the demo to start a new booking.");
+        setNotice("Session limit reached. Reset the demo to start a new booking.");
         setState("idle");
         return;
       }
@@ -295,7 +295,7 @@ export default function Home() {
           <p className="hint">
             {sttSupported
               ? "Push-to-talk · one sentence per tap"
-              : "Voice isn’t available in this browser — using text."}
+              : "Voice isn't available in this browser, so you can type instead."}
           </p>
         )}
       </section>

@@ -56,14 +56,14 @@ const COOLING_DOWN: GuardVerdict = {
   ok: false,
   status: 429,
   error: "cooling_down",
-  message: "The demo is cooling down — try again in a minute.",
+  message: "The demo is cooling down. Try again in a minute.",
 };
 
 const DAILY_LIMIT_REACHED: GuardVerdict = {
   ok: false,
   status: 429,
   error: "daily_limit",
-  message: "You've reached today's demo limit — please come back tomorrow.",
+  message: "You've reached today's demo limit. Come back tomorrow.",
 };
 
 /**
@@ -118,7 +118,7 @@ export function runGuards(req: Request): GuardVerdict {
 // --- Global daily model-call budget -----------------------------------------
 /** Friendly spoken notice when the day's model-call budget is spent. */
 export const DEMO_RESTING_MESSAGE =
-  "The demo is resting until tomorrow — it's had a busy day. Please check back then.";
+  "The demo has reached today's usage limit. Check back tomorrow.";
 
 function rollModelDay(): void {
   const today = utcDay();

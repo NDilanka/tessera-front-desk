@@ -1,8 +1,9 @@
 /* ============================================================================
    ios26.css — Canonical iOS 26 "Liquid Glass" design system (plain CSS)
    Authority: DESIGN_REFERENCE.md (values) → SYSTEM_BRIEF.md (decisions).
-   Copy this file verbatim into each app; set the per-app accent in globals.css
-   with one line: :root { --tint: var(--system-indigo); }
+   Copy this file verbatim into each app. The accent is unified across the
+   product family ("Tessera Petrol", see _redesign/deslop/THEME.md) and defined
+   here — repos must NOT override --tint in globals.css.
 
    INFERENCE NOTICE (per DESIGN_REFERENCE §2/§4/§6): the accent + gray RGB tables
    are Apple-published exact values. The semantic label/background/fill/separator
@@ -23,8 +24,6 @@
   --system-teal:   rgb(0, 195, 208);
   --system-cyan:   rgb(0, 192, 232);
   --system-blue:   rgb(0, 136, 255);
-  --system-indigo: rgb(97, 85, 245);
-  --system-purple: rgb(203, 48, 224);
   --system-pink:   rgb(255, 45, 85);
   --system-brown:  rgb(172, 127, 94);
 
@@ -62,8 +61,9 @@
   --fill-2: rgba(120, 120, 128, 0.16);
   --fill-3: rgba(118, 118, 128, 0.12);
 
-  /* App tint indirection. Override --tint per app; keep --tint-contrast readable. */
-  --tint: var(--system-blue);
+  /* Unified accent — "Tessera Petrol" (THEME.md). One accent for the whole
+     family; status hues stay semantic. Repos do not override --tint. */
+  --tint: rgb(12, 108, 122);
   --tint-contrast: #ffffff;
   --focus-ring: color-mix(in srgb, var(--tint) 45%, transparent);
 
@@ -139,8 +139,6 @@
     --system-teal:   rgb(0, 210, 224);
     --system-cyan:   rgb(60, 211, 254);
     --system-blue:   rgb(0, 145, 255);
-    --system-indigo: rgb(109, 124, 255);
-    --system-purple: rgb(219, 52, 242);
     --system-pink:   rgb(255, 55, 95);
     --system-brown:  rgb(183, 138, 102);
 
@@ -172,6 +170,10 @@
     --fill-2: rgba(120, 120, 128, 0.32);
     --fill-3: rgba(118, 118, 128, 0.24);
 
+    /* Petrol accent, dark. Light accent needs a near-black label (THEME.md). */
+    --tint: rgb(94, 192, 202);
+    --tint-contrast: rgb(6, 30, 33);
+
     --glass-surface: 40 40 44;
     --glass-opacity: 0.55;
     --glass-border: rgba(255, 255, 255, 0.14);
@@ -194,8 +196,6 @@
     --system-teal:   rgb(0, 129, 152);
     --system-cyan:   rgb(0, 126, 174);
     --system-blue:   rgb(30, 110, 244);
-    --system-indigo: rgb(86, 74, 222);
-    --system-purple: rgb(176, 47, 194);
     --system-pink:   rgb(231, 18, 77);
     --system-brown:  rgb(149, 109, 81);
 
@@ -210,6 +210,7 @@
     --label-3:  rgba(60, 60, 67, 0.45);
     --label-4:  rgba(60, 60, 67, 0.30);
     --separator: rgba(60, 60, 67, 0.45);
+    --tint: rgb(5, 84, 96);
 
     --glass-border: color-mix(in srgb, var(--label) 45%, transparent);
     --glass-opacity: 0.72;
@@ -226,8 +227,6 @@
     --system-teal:   rgb(59, 221, 236);
     --system-cyan:   rgb(109, 217, 255);
     --system-blue:   rgb(92, 184, 255);
-    --system-indigo: rgb(167, 170, 255);
-    --system-purple: rgb(234, 141, 255);
     --system-pink:   rgb(255, 138, 196);
     --system-brown:  rgb(219, 166, 121);
 
@@ -242,6 +241,7 @@
     --label-3:  rgba(235, 235, 245, 0.45);
     --label-4:  rgba(235, 235, 245, 0.30);
     --separator: rgba(84, 84, 88, 0.80);
+    --tint: rgb(140, 212, 220);
 
     --glass-border: color-mix(in srgb, var(--label) 45%, transparent);
   }
@@ -663,11 +663,8 @@ input.field-search { padding-left: var(--space-7); border-radius: var(--radius-c
 .badge-green  { --badge-color: var(--system-green); }
 .badge-red    { --badge-color: var(--system-red); }
 .badge-orange { --badge-color: var(--system-orange); }
-.badge-blue   { --badge-color: var(--system-blue); }
 .badge-gray   { --badge-color: var(--system-gray); }
-.badge-purple { --badge-color: var(--system-purple); }
-.badge-indigo { --badge-color: var(--system-indigo); }
-.badge-teal   { --badge-color: var(--system-teal); }
+.badge-tint   { --badge-color: var(--tint); }
 
 /* ---------------------------------------------------------------------------
    15. Accessibility — reduced motion (fades only, no bounce/transform; §4/§6)

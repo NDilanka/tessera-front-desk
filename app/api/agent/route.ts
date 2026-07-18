@@ -86,7 +86,7 @@ export async function POST(req: Request) {
     return Response.json(
       {
         error: "session_limit",
-        message: "Session limit reached — please reset the demo to start a new booking.",
+        message: "Session limit reached. Reset the demo to start a new booking.",
       },
       { status: 429 },
     );
